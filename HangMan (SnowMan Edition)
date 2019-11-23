@@ -1,0 +1,196 @@
+//Richard Forrester, CS210 (B) 
+//11/21/2019
+//This program is creates game where the user must guess the mystery word by choosing one letter at a time.
+
+#include <cstdlib>
+#include <time.h>  
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+using namespace std;
+
+class HangMan { //This is class is the blueprint for the setting up and executing the hangman game
+    private:
+		char letters[20] = {}; //contains the guessed letters
+		int index = 0; //index position
+		int correct = 0; //keeps a count of correct letters guessed
+		int temp = 0; 
+		int fail = 0; //keeps count of failed guesses
+		int characters;
+		int index2 = 0;
+		string wordList[100] = {}; //contains the word list
+		string word = ""; //contains the word that is being guessed
+		string line = ""; //contains the concatenated string of guessed letters and empty dashes
+		bool found = false; //false if
+
+	public:
+		HangMan() { //Opens the word list and populates the the array with the strings
+			ifstream input;
+			input.open("wordlist.txt");
+
+			while (getline(input, word)) {
+				wordList[index] = word;
+				index++;
+			}
+			input.close();
+
+			index = rand() % 60; //chooses a random word from the list.
+			word = wordList[index];
+		}
+
+	void checkAnswer (char guess) { //checks to see if the guess matches any of the letters in the word
+		line = "";
+		
+		letters[index2] = tolower(guess);
+		index2++;
+
+		characters = word.length();
+
+		for (int x = 0; x < characters; x++) {
+			found = false;
+
+			for (int n : letters) { //checks for correct guess
+				if (tolower(word[x]) == n) { 
+					found = true; 
+					line += word[x];
+					line+= " ";  
+					correct += 1; 
+					break; 
+				} 
+			}
+			if (found == false) { //prints a dash for letters that have yet to be guessed 
+				line+= "_ ";
+			}
+		}
+		if (correct == characters) {  //ends the game if you have guessed all the letters correctly
+			fail = 6;  
+		}
+		else if (temp < correct || guess=='1') { //checks to see if you guessed a new letter correctly
+			temp = correct; 
+		} else { //lose a turn if no new letter was guessed correctly
+			fail++; 
+		}
+		correct = 0; //re-sets correct guesses
+	}
+
+	int getFail() { //returns the value of how many incorrect guesses
+		return this->fail;
+	}
+
+	string getWord() { //returns the word that is being guessed
+		return word; 
+	}
+
+	string getLine() { //returns the line containing all the letters to be guessed as well as the correctly guessed letters
+		return line; 
+	}
+};
+
+class SnowMan { //creates the snowman picture
+	public:
+
+	void head1() { //snowman head
+		cout << "          ___ \n";
+		cout << "        _|___|_\n";
+		cout << "       '=/* *\\='\n";
+		cout << "         \\~_~/\n";
+	}
+
+	void head2() { //head without the hat
+		cout << "          ___\n";
+		cout << "         /* *\\\n";
+		cout << "         \\~_~/\n";
+	}
+
+	void chest() {//snowman chest
+		cout << "     \\__/ '-' \\__/_\n";
+		cout << "     /  \\  o  /  \\\n";
+	}
+
+	void waist() {// snowman waist
+		cout << "       / '---' \\\n";
+		cout << "      |    o    |\n";
+	}
+
+	void leg (){//snowman leg
+		cout << "---.---\\   o   /-----.---\n";
+		cout << "        '-----'`\n";
+	}
+};
+
+
+int main() {
+	int round = 0;
+	char choice = '1';
+
+	srand(time(NULL));
+
+	SnowMan frosty;
+	HangMan game;
+	//Game Explanation
+	cout << "This is a HangMan Game (Climate Change Edition)\n";
+	cout << "You have to guess the correct letters of the word before I, Frosty The Snowman, melt due to global warming.\n";
+	cout << "For every incorrect guess Frosty will melt (5 Chances), but if you guess the correct letter then Tesla sells another car and frosty remains intact\n";
+	cout << "Good Luck!\n\n\n";
+	//FencePost Rule: Print out the SnowMan and line before the loop
+	frosty.head1();
+	frosty.chest();
+	frosty.waist();
+	frosty.leg();
+	//allows the the object to print out the guessed lines without counting a guess
+	game.checkAnswer('1');
+
+	cout << game.getLine();
+	//while loop keeps the game going until round counter exceeds 5
+	while ( round != 5) {
+		cout << "\n\nTurns Left: "<<5-round<<"\nGuess: "; //Keeps track of turns left
+		cin >> choice;
+		cout << "\n\n\n";
+
+		cin.clear(); //Stops from taking a bunch of bad input
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+		game.checkAnswer(choice);
+
+		round = game.getFail(); //makes the round counter equal to  the number of incorrect guesses.
+		
+		switch (round) { //switch statement to melt different parts of the snowman depending on the round(incorrect guesses)
+			case 0:
+				frosty.head1();
+				frosty.chest();
+				frosty.waist();
+				frosty.leg();
+				break;
+			case 1:
+				frosty.head2();
+				frosty.chest();
+				frosty.waist();
+				frosty.leg();
+				break;
+			case 2:
+				frosty.chest();
+				frosty.waist();
+				frosty.leg();
+				break;
+			case 3:
+				frosty.waist();
+				frosty.leg();
+				break;
+			case 4:
+				frosty.leg();
+				break;
+			case 5:
+				cout << "\n\n\nYou Lose!!\nSHAME ON YOU!\n";
+				cout << "\nThe correct answer was: " << game.getWord()<<"\n\n";
+				return 7;
+			case 6:
+				cout << "\n\nYOU WIN!!\n";
+				cout << "The correct word is: " << game.getWord() << "\n\n";
+				return 7;
+		}
+		cout << game.getLine();
+	}
+}
+
+
