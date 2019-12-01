@@ -1,0 +1,133 @@
+// Richard A Forrester, Prog 111 (HYA)
+//10/22/2019
+//This program is a Impossible Guess A Number's game.
+
+#include <cstdlib>
+#include <iostream>
+#include <time.h>
+
+using namespace std;
+
+
+int answer; //This variable stores the randomly generated Myster Number
+int counter = 3; // This variable keeps track of how many turns the user has left
+int guess; // Each guess was stored in an indivual variable to ensure that the algorithm will never create an unreasonal mystery number
+int guess2;
+int guess3;
+bool high; // This variable helps the program keep track of whether the new mystery number must be higher or lower than the users previous guess
+bool high2;
+int range; //This variable controls the maximum range of numbers the user  can choose from!
+
+void round1() {
+	cin >> guess;
+	//This loop stops the user from loosing a turn if he guess outside the range by accident.
+	while (guess > range || guess < 1) {
+		cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		cout << "\nSorry that guess is outside the selected range!\n";
+		cout << "Please choose a number from 1 to " << range << ": ";
+		cin >> guess;
+	}
+	// This while loop ensures that the myster number will not be a number that could potentially cause an illogical final answer
+	// For instance if the mystery number was 2 and the user choose 3, he will certainly have enough info and tries to get the right answer
+	while (guess == answer || answer <= 3 || answer > range - 3) {
+		answer = rand() % range + 1;
+	}
+	if (guess > answer) {
+		high = true; counter--; cout << "Too High\n\nYou have " << counter << " tries left: ";
+	}
+	else {
+		counter--; high = false; cout << "Too Low\n\nYou have " << counter << " tries left: ";
+	}
+}
+
+void round2() {
+	cin >> guess2;
+	// These if statements use do while loops to prevent the user from losing a turn with an invalid or illogical guesss.
+	while (high == false && guess2 <= guess) {
+		cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		cout << "\nYou already Know That answer is too low!\nTry again: ";
+		cin >> guess2;
+	}
+	while (high == true && guess2 >= guess) {
+		cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		cout << "\nYou already Know That answer is too High!\nTry again: ";
+		cin >> guess2;
+	}
+	// These if statements use the high variable to determine whether or not the new mystery number should be higher or lower than the previous guess
+	if (high == false) {
+		while (answer <= guess || answer == guess2 || answer == guess + 1 || answer == guess + 2) {
+			answer = rand() % range + 1;
+		}
+	}
+	else {
+		do {
+			answer = rand() % range + 1;
+		} while (answer >= guess || answer == guess2 || answer == guess - 1 || answer == guess - 2);
+	}
+	if (guess2 > answer) {
+		high2 = true; counter--;
+		cout << "Too High\n\nYou have " << counter << " try left: ";
+	}
+	else {
+		counter--; high2 = false; cout << "Too Low\n\nYou have " << counter << " try left: ";
+	}
+}
+
+void round3() {
+	cin >> guess3;
+	while ((high2 == false && guess3 <= guess2) || (high == false && guess3 <= guess)) {
+		cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		cout << "\nYou already Know That answer is too low!\nTry again: ";
+		cin >> guess3;
+	}
+	while ((high2 == true && guess3 >= guess2) || (high == true && guess3 >= guess)) {
+		cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		cout << "\nYou already Know That answer is too High!\nTry again: ";
+		cin >> guess3;
+	}
+	if (high2 == false) {
+		while (answer == guess3 || answer == guess || answer <= guess2) {
+			answer = rand() % range + 1;
+		}
+	}
+	else {
+		while (answer == guess3 || answer == guess || answer >= guess2) {
+			answer = rand() % range + 1;
+		}
+	}
+	if (guess3 > answer) {
+		counter--; cout << "Too High\nYou have " << counter << " tries left\n\n";
+	}
+	else {
+		counter--; cout << "Too Low\nYou have " << counter << " tries left\n\n";
+	}
+	cout << "Sorry! That was your last try\nThe answer was OBVIOUSLY " << answer << "\n\n";
+}
+
+int main() {
+	srand(time(NULL));
+	cout << "This is a guess a number Mystery Game!\nYou have THREE CHANCES to guess the correct number?\n";
+	cout << "You get to choose the range!";
+
+	do {
+		cout << "\n\nThe Number must be 10 or higher!\nWhat is the maximum Number ? ";
+		cin >> range;
+		// Using these two function below I can prevent the program from crashing if the user enters a non-integer
+		cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+	} while (range < 10);
+	// The random number is generated based off the users desired range as long as it is 10 or above.
+	answer = rand() % range + 1;
+
+	cout << "\nOkay!\nLets Begin!\n\nWhat is your first guess: ";
+
+	//A method was created for each round to better keep track of the users guesses and the changing answer variable.
+	round1();
+	round2();
+	round3();
+}
