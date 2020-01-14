@@ -1,0 +1,104 @@
+#include <iostream>
+#include <WS2tcpip.h>
+using namespace std;
+
+#pragma comment(lib, "ws2_32.lib")
+
+void main(){
+
+	//Initilazie winsock
+	WSADATA winsock;
+
+	WORD version=MAKEWORD(2,3);
+
+	int call = WSAStartup(version, &winsock);
+
+	if (call != 0) {
+		//explain cerr
+		cerr << "You Done Fucked Up";
+		return ;
+	}
+	//Create Socket
+	//what is a flag
+	SOCKET listener = socket(AF_INET,SOCK_STREAM,0);
+	if (listener == INVALID_SOCKET) {
+		cerr << "You Done Messed Up";
+		return;
+
+	}
+	//bind
+	sockaddr_in hint;
+	hint.sin_family = AF_INET;
+	hint.sin_port = htons(85);
+	hint.sin_addr.S_un.S_addr = INADDR_ANY;
+
+	bind(listener,(sockaddr*)&hint,sizeof(hint));
+
+	//tells winsokc that this socket is the server listening
+	listen(listener, SOMAXCONN);
+
+	//wait for connedction
+	sockaddr_in client;
+	int clientSize = sizeof(client);
+
+	SOCKET clientsocket = accept(listener, (sockaddr*)&client, &clientSize);
+	if (clientsocket == INVALID_SOCKET) {
+		cerr << "You Done Messed Up";
+		return;
+
+	}
+
+	//gets info about the client
+	char host[NI_MAXHOST];
+	char service[NI_MAXSERV];
+
+	ZeroMemory(host, NI_MAXHOST);
+	ZeroMemory(service, NI_MAXSERV);
+	//why equal to 0? cause doesnt the flag mean that nothing got done?
+	if (getnameinfo((sockaddr*)&client, sizeof(client), host, NI_MAXHOST, service, NI_MAXSERV, 0) == 0)
+	{
+
+		cout << host << " connected on port " << service << endl;
+
+	}
+	else {
+
+		inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
+		cout << host << " connected on port " << ntohs(client.sin_port) << endl;
+
+	}
+
+	//close lsotening socket
+	closesocket(listener);
+
+	//takes the message and sends it back
+	char message[4096];
+	while (true) {
+		ZeroMemory(message,4096);
+
+		//wait for client to send data
+		int bytesRrecieved = recv(clientsocket, message, 4096, 0);
+		if (bytesRrecieved == SOCKET_ERROR)
+		{
+			cerr << "Error in recv(). Quitting" << endl;
+			break;
+
+		}
+		if(bytesRrecieved == 0)
+		{ 
+			cout << "Client Disconnected" << endl;
+			break;
+		
+		}
+		send(clientsocket, message, bytesRrecieved + 1,0);
+
+
+
+	}
+
+	closesocket(clientsocket);
+
+	WSACleanup();
+
+
+}
